@@ -39,7 +39,7 @@ def execute_command(command, exp):
     return process
 
 
-execute_command(['git', 'clone', 'https://github.com/ambercc/servisor.git'], '获取数据')
+execute_command(['git', 'clone', 'https://github.com/amber6hua/servisor.git'], '获取数据')
 username = subprocess.run(['whoami'], capture_output=True, text=True).stdout.strip()
 with open('servisor/config.py', 'a', encoding='utf-8') as f:
     servisor_path = input(f'请输入Servisor安装目录（/home/{username}/.servisor）:')

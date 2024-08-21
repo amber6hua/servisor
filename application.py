@@ -85,7 +85,7 @@ def authorize():
 @app.route('/web')
 def protected():
     servisord()
-    return "<h1>Servisor By <a href='https://github.com/ambercc'>mflage</a></h1>"
+    return "<h1>Servisor By <a href='https://github.com/amber6hua'>mflage</a></h1>"
 
 @app.route("/", methods=['GET'])
 @login_required

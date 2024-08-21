@@ -24,7 +24,7 @@ Cloudflare Access 集成：使用 OAuth2 对您的应用程序进行安全访问
 ### 开始安装
 登录您的serv00/ct8在终端输入
 ```bash
-python <(curl -Ls https://raw.githubusercontent.com/ambercc/servisor/main/install.py)
+python <(curl -Ls https://raw.githubusercontent.com/amber6hua/servisor/main/install.py)
 ```
 跟随指引完成您的部署
 ![](static/images/img_2.png)
