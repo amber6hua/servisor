@@ -5,7 +5,7 @@ Description :
 date：          2024/8/9 009
 """
 from flask import Flask, url_for, session, redirect, abort
-from config import client_id, client_secret, endpoint
+from config import client_id, client_secret
 from authlib.integrations.flask_client import OAuth
 from views.v1 import api_v1, login_required
 from threading import Timer
@@ -25,20 +25,22 @@ app.register_blueprint(api_v1, url_prefix='/api/v1')
 # 初始化OAuth
 oauth = OAuth(app)
 oauth.register(
-    name='cloudflare',
+    name='github',
     client_id=client_id,
     client_secret=client_secret,
-    server_metadata_url=f'{endpoint}/cdn-cgi/access/sso/oidc/{client_id}/.well-known/openid-configuration',
+    authorize_url='https://github.com/login/oauth/authorize',
+    authorize_params=None,
+    access_token_url='https://github.com/login/oauth/access_token',
+    access_token_params=None,
     client_kwargs={
-        'scope': 'openid email profile groups',
-    }
+        'scope': 'user:email',
+    },
+    api_base_url='https://api.github.com/'
 )
-
 
 # 生成 nonce 的函数
 def generate_nonce():
     return str(uuid.uuid4())
-
 
 @app.route('/login')
 def login():
@@ -48,8 +50,7 @@ def login():
 
     # 进行 OAuth 2.0 重定向
     redirect_uri = url_for('authorize', _external=True)
-    return oauth.cloudflare.authorize_redirect(redirect_uri, nonce=nonce)
-
+    return oauth.github.authorize_redirect(redirect_uri, nonce=nonce)
 
 @app.route('/oauth2/callback')
 def authorize():
@@ -61,16 +62,16 @@ def authorize():
             raise ValueError("Missing nonce in session. Potential CSRF attack.")
 
         # 获取访问令牌
-        token = oauth.cloudflare.authorize_access_token()
+        token = oauth.github.authorize_access_token()
 
         if token is None:
             raise ValueError("Failed to retrieve access token. Received None.")
 
-        # 使用 nonce 解析 ID 令牌
-        user_info = oauth.cloudflare.parse_id_token(token, nonce=nonce)
+        # 获取用户信息
+        user_info = oauth.github.get('user').json()
 
         if user_info is None:
-            raise ValueError("Failed to parse user information from ID token.")
+            raise ValueError("Failed to parse user information from GitHub API.")
 
         # 将用户信息保存到会话中
         session['user'] = user_info
@@ -81,12 +82,10 @@ def authorize():
         print(f"Authorization error: {str(e)}")
         abort(500, 'An error occurred during the authorization process.')
 
-
 @app.route('/web')
 def protected():
     servisord()
-    return "<h1>Servisor By <a href='https://github.com/mflage0'>mflage</a></h1>"
-
+    return "<h1>Servisor By <a href='https://github.com/ambercc'>mflage</a></h1>"
 
 @app.route("/", methods=['GET'])
 @login_required
@@ -94,13 +93,11 @@ def root():
     servisord()
     return open('static/info.html')
 
-
 def loop_main(inc):
     t = Timer(inc, loop_main, (inc,))
     servisord()
     keep_web()
     t.start()
-
 
 if __name__ == "__main__":
     app.run()
